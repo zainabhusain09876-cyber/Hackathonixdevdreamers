@@ -12,23 +12,13 @@ export const goalService = {
     const { goalName, targetAmount, currentSavings, months } = goalData;
 
     if (months <= 0) throw new Error("Deadline must be greater than 0 months");
-    if (currentSavings > targetAmount) throw new Error("Current savings cannot exceed target");
-
-    const remaining = targetAmount - currentSavings;
-    const monthlyRequired = Math.ceil(remaining / months);
-    const progress = Number(((currentSavings / targetAmount) * 100).toFixed(2));
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User must be logged in");
-
+    
     const { data, error } = await supabase.from("goals").insert({
-      user_id: user.id,
-      goal_name: goalName,
-      target_amount: targetAmount,
+      objective_name: goalName,
+      target: targetAmount,
       current_savings: currentSavings,
-      deadline_months: months,
-      monthly_required: monthlyRequired,
-      progress: progress
+      initial: currentSavings, // Mapping initial to current_savings for now
+      timeframe: months
     }).select().single();
 
     if (error) throw error;
@@ -57,10 +47,10 @@ export const goalService = {
   async analyzeGoal(goal: any) {
     const { data, error } = await supabase.functions.invoke('analyze-goal', {
       body: {
-        goalName: goal.goal_name,
-        targetAmount: goal.target_amount,
+        goalName: goal.objective_name,
+        targetAmount: goal.target,
         currentSavings: goal.current_savings,
-        months: goal.deadline_months
+        months: goal.timeframe
       }
     });
 

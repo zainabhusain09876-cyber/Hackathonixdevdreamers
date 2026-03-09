@@ -101,7 +101,7 @@ const Dashboard = () => {
     }
   };
 
-  const totalSavings = goals.reduce((acc, goal) => acc + goal.current_savings, 0);
+  const totalSavings = goals.reduce((acc, goal) => acc + (goal.current_savings || 0), 0);
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-10 neon-grid">
@@ -284,8 +284,9 @@ const StatCard = ({ icon, label, value, variant }: any) => (
 );
 
 const GoalProgressCard = ({ goal, variant = 'cyan', onDelete, onAnalyze, isAnalyzing, insight }: any) => {
-  const progress = Math.round((goal.current_savings / goal.target_amount) * 100);
+  const progress = Math.round(((goal.current_savings || 0) / (goal.target || 1)) * 100);
   const color = variant === 'cyan' ? '#00F5FF' : variant === 'pink' ? '#FF00FF' : '#7C3AED';
+  const monthlyRequired = Math.ceil(((goal.target || 0) - (goal.current_savings || 0)) / (goal.timeframe || 1));
 
   return (
     <motion.div
@@ -298,10 +299,10 @@ const GoalProgressCard = ({ goal, variant = 'cyan', onDelete, onAnalyze, isAnaly
         <div className="flex justify-between items-start mb-4">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-black text-white tracking-tight uppercase">{goal.goal_name}</h3>
+              <h3 className="text-xl font-black text-white tracking-tight uppercase">{goal.objective_name}</h3>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-muted-foreground">ID: {goal.id.slice(0,8)}</span>
             </div>
-            <p className="text-xs text-muted-foreground font-mono mt-1">TIMEFRAME: {goal.deadline_months} MONTHS</p>
+            <p className="text-xs text-muted-foreground font-mono mt-1">TIMEFRAME: {goal.timeframe} MONTHS</p>
           </div>
           <div className="flex gap-2">
             <button 
@@ -325,15 +326,15 @@ const GoalProgressCard = ({ goal, variant = 'cyan', onDelete, onAnalyze, isAnaly
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="space-y-1">
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Target</p>
-            <p className="text-sm font-black text-white">₹{goal.target_amount.toLocaleString()}</p>
+            <p className="text-sm font-black text-white">₹{(goal.target || 0).toLocaleString()}</p>
           </div>
           <div className="space-y-1">
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Saved</p>
-            <p className="text-sm font-black text-white">₹{goal.current_savings.toLocaleString()}</p>
+            <p className="text-sm font-black text-white">₹{(goal.current_savings || 0).toLocaleString()}</p>
           </div>
           <div className="space-y-1">
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Monthly Req.</p>
-            <p className="text-sm font-black text-primary">₹{goal.monthly_required.toLocaleString()}</p>
+            <p className="text-sm font-black text-primary">₹{monthlyRequired.toLocaleString()}</p>
           </div>
           <div className="space-y-1 text-right">
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Progress</p>
