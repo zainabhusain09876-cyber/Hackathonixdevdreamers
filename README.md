@@ -7,28 +7,31 @@ Build a Financial Goal Tracker website
 Building a modern AI-powered financial goal tracking web application.
 
 ## Features
-1] Set financial goals
-2] Track savings progress
-3] Monitor expenses
-4] View analytics
-5] Receive AI-powered financial recommendations
+- Set financial goals
+- Track savings progress
+- Monitor expenses
+- View analytics
+- Receive AI-powered financial recommendations
 
 ## Tech Stack
 Frontend: 
-HTML
-CSS
-Vanilla JavaScript
-Tailwind CSS
-Chart.js for charts
-GSAP / AOS for animations
+- HTML
+- CSS
+- Vanilla JavaScript
+- Tailwind CSS
+- Chart.js for charts
+- GSAP / AOS for animations
 
 Backend:  
-Node.js
-Django
-Supabase
-PostgreSQL database
+- Node.js
+- Django
+- Supabase
+- PostgreSQL database
 
-Other Tools: OpenAI, dyad, GitHub
+Other Tools: 
+- OpenAI
+- dyad
+- GitHub
 
 ## Future Improvements
 - UPI transaction imports
