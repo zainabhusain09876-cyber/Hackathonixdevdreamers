@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# Welcome to your Dyad app
-=======
 # Hackathonix Team - Devdreamers
 
 ## Problem
@@ -18,29 +15,22 @@ Building a modern AI-powered financial goal tracking web application.
 
 ## Tech Stack
 Frontend: 
-- HTML
-- CSS
-- Vanilla JavaScript
+- React
+- TypeScript
 - Tailwind CSS
-- Chart.js for charts
-- GSAP / AOS for animations
+- Lucide Icons
+- Framer Motion for animations
+- Recharts for data visualization
 
 Backend:  
-- Node.js
-- Django
-- Supabase
-- PostgreSQL database
-
-Other Tools: 
-- OpenAI
-- dyad
-- GitHub
+- Supabase (Auth & Database)
+- Edge Functions for AI Analysis
 
 ## Future Improvements
 - UPI transaction imports
 - CSV bank statement upload
 - Stocks, Mutual funds, Crypto, SIP investments
-- Create a financial score for users (Example score calculation, Savings rate, Debt ratio, Emergency fund level)
+- Create a financial score for users
 - App Generation
   
 ## Team Members
@@ -48,4 +38,3 @@ Other Tools:
 - Eshlin Virdi
 - Aadya Dev
 - Puja Dhatrak
->>>>>>> 6982d04848006bc99cf07fe990d6860dc61b7a0b
