@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NeonCard from '@/components/NeonCard';
-import { Wallet, TrendingDown, Target, Activity, Plus, Loader2, Trash2, BrainCircuit, Sparkles, Edit2 } from 'lucide-react';
+import { Wallet, TrendingDown, Target, Activity, Plus, Loader2, Trash2, BrainCircuit, Sparkles, Edit2, PlusCircle } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
 import NeonButton from '@/components/NeonButton';
 import { goalService } from '@/services/goalService';
@@ -143,58 +143,12 @@ const Dashboard = () => {
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
           <div>
             <h1 className="text-4xl font-black text-white tracking-tighter">
-              <span className="neon-text-cyan">FINANCIAL</span> COMMAND
+              <span className="neon-text-cyan">FINANCIAL</span> DASHBOARD
             </h1>
-            <p className="text-muted-foreground font-mono text-sm">SYSTEM STATUS: OPTIMAL // USER: AUTHENTICATED</p>
+            <p className="text-muted-foreground font-mono text-sm">REAL-TIME ASSET TRACKING</p>
           </div>
           
           <div className="flex gap-4">
-            <Dialog open={isFinanceDialogOpen} onOpenChange={setIsFinanceDialogOpen}>
-              <DialogTrigger asChild>
-                <NeonButton variant="purple" size="lg" className="flex gap-2">
-                  <Edit2 size={20} /> UPDATE BALANCE
-                </NeonButton>
-              </DialogTrigger>
-              <DialogContent className="glass-card border-accent/20 text-white max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-black neon-text-pink">UPDATE FINANCES</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleUpdateFinances} className="space-y-4 mt-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">Total Capital (₹)</label>
-                    <input 
-                      required
-                      type="number"
-                      value={editFinances.total_capital}
-                      onChange={e => setEditFinances({...editFinances, total_capital: e.target.value})}
-                      className="w-full bg-black/50 border border-secondary/30 rounded-lg px-4 py-3 focus:border-secondary outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">Burn Rate (₹/mo)</label>
-                    <input 
-                      required
-                      type="number"
-                      value={editFinances.burn_rate}
-                      onChange={e => setEditFinances({...editFinances, burn_rate: e.target.value})}
-                      className="w-full bg-black/50 border border-secondary/30 rounded-lg px-4 py-3 focus:border-secondary outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">Efficiency (%)</label>
-                    <input 
-                      required
-                      type="number"
-                      value={editFinances.efficiency}
-                      onChange={e => setEditFinances({...editFinances, efficiency: e.target.value})}
-                      className="w-full bg-black/50 border border-secondary/30 rounded-lg px-4 py-3 focus:border-secondary outline-none"
-                    />
-                  </div>
-                  <NeonButton type="submit" variant="pink" className="w-full py-4 text-lg">SYNC PARAMETERS</NeonButton>
-                </form>
-              </DialogContent>
-            </Dialog>
-
             <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
               <DialogTrigger asChild>
                 <NeonButton variant="cyan" size="lg" className="flex gap-2">
@@ -256,7 +210,58 @@ const Dashboard = () => {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <StatCard icon={<Wallet className="text-primary" />} label="TOTAL CAPITAL" value={`₹${finances.total_capital.toLocaleString()}`} variant="cyan" />
+          <Dialog open={isFinanceDialogOpen} onOpenChange={setIsFinanceDialogOpen}>
+            <DialogTrigger asChild>
+              <div className="cursor-pointer">
+                <StatCard 
+                  icon={<Wallet className="text-primary" />} 
+                  label="TOTAL CAPITAL" 
+                  value={`₹${finances.total_capital.toLocaleString()}`} 
+                  variant="cyan" 
+                  actionIcon={<PlusCircle size={16} className="text-primary opacity-50 group-hover:opacity-100 transition-opacity" />}
+                />
+              </div>
+            </DialogTrigger>
+            <DialogContent className="glass-card border-accent/20 text-white max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black neon-text-pink">UPDATE FINANCES</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleUpdateFinances} className="space-y-4 mt-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">Total Capital (₹)</label>
+                  <input 
+                    required
+                    type="number"
+                    value={editFinances.total_capital}
+                    onChange={e => setEditFinances({...editFinances, total_capital: e.target.value})}
+                    className="w-full bg-black/50 border border-secondary/30 rounded-lg px-4 py-3 focus:border-secondary outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">Burn Rate (₹/mo)</label>
+                  <input 
+                    required
+                    type="number"
+                    value={editFinances.burn_rate}
+                    onChange={e => setEditFinances({...editFinances, burn_rate: e.target.value})}
+                    className="w-full bg-black/50 border border-secondary/30 rounded-lg px-4 py-3 focus:border-secondary outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">Efficiency (%)</label>
+                  <input 
+                    required
+                    type="number"
+                    value={editFinances.efficiency}
+                    onChange={e => setEditFinances({...editFinances, efficiency: e.target.value})}
+                    className="w-full bg-black/50 border border-secondary/30 rounded-lg px-4 py-3 focus:border-secondary outline-none"
+                  />
+                </div>
+                <NeonButton type="submit" variant="pink" className="w-full py-4 text-lg">SYNC PARAMETERS</NeonButton>
+              </form>
+            </DialogContent>
+          </Dialog>
+
           <StatCard icon={<TrendingDown className="text-secondary" />} label="BURN RATE" value={`₹${finances.burn_rate.toLocaleString()}`} variant="pink" />
           <StatCard icon={<Target className="text-accent" />} label="ACTIVE MISSIONS" value={goals.length.toString()} variant="purple" />
           <StatCard icon={<Activity className="text-primary" />} label="EFFICIENCY" value={`${finances.efficiency}%`} variant="cyan" />
@@ -355,13 +360,16 @@ const Dashboard = () => {
   );
 };
 
-const StatCard = ({ icon, label, value, variant }: any) => (
-  <NeonCard variant={variant} className="flex items-center gap-4 group">
-    <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">{icon}</div>
-    <div>
-      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{label}</p>
-      <p className="text-2xl font-black text-white tracking-tight">{value}</p>
+const StatCard = ({ icon, label, value, variant, actionIcon }: any) => (
+  <NeonCard variant={variant} className="flex items-center justify-between group">
+    <div className="flex items-center gap-4">
+      <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">{icon}</div>
+      <div>
+        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{label}</p>
+        <p className="text-2xl font-black text-white tracking-tight">{value}</p>
+      </div>
     </div>
+    {actionIcon && <div>{actionIcon}</div>}
   </NeonCard>
 );
 
