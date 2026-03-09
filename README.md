@@ -16,6 +16,9 @@ Building a modern AI-powered financial goal tracking web application.
 ## Tech Stack
 Frontend: 
 - React
+- HTML
+- CSS
+- JAVAscript
 - TypeScript
 - Tailwind CSS
 - Lucide Icons
