@@ -17,17 +17,11 @@ export const goalService = {
       objective_name: goalName,
       target: targetAmount,
       current_savings: currentSavings,
-      initial: currentSavings,
+      initial: currentSavings, // Mapping initial to current_savings for now
       timeframe: months
     }).select().single();
 
     if (error) throw error;
-
-    // Create initial transaction
-    if (currentSavings > 0) {
-      await this.addTransaction(data.id, currentSavings);
-    }
-
     return data;
   },
 
@@ -48,35 +42,6 @@ export const goalService = {
       .eq('id', id);
 
     if (error) throw error;
-  },
-
-  async addTransaction(goalId: string, amount: number) {
-    const { error: txError } = await supabase.from("transactions").insert({
-      goal_id: goalId,
-      amount: amount
-    });
-
-    if (txError) throw txError;
-
-    // Update goal current_savings
-    const { data: goal } = await supabase.from("goals").select("current_savings").eq("id", goalId).single();
-    const newTotal = (goal?.current_savings || 0) + amount;
-
-    const { error: updateError } = await supabase.from("goals")
-      .update({ current_savings: newTotal })
-      .eq("id", goalId);
-
-    if (updateError) throw updateError;
-  },
-
-  async fetchTransactions() {
-    const { data, error } = await supabase
-      .from("transactions")
-      .select("*, goals(objective_name)")
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data;
   },
 
   async analyzeGoal(goal: any) {
