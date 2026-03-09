@@ -1,269 +1,187 @@
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import NeonCard from '@/components/NeonCard';
-import { Wallet, TrendingDown, Target, Activity, Plus, Loader2, Trash2, BrainCircuit, Sparkles } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
 import NeonButton from '@/components/NeonButton';
-import { goalService } from '@/services/goalService';
-import { showSuccess, showError } from '@/utils/toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { 
+  Wallet, 
+  Target, 
+  CheckCircle2, 
+  TrendingUp, 
+  Plus, 
+  AlertCircle, 
+  Clock, 
+  Trophy,
+  Calendar
+} from 'lucide-react';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  AreaChart,
+  Area
+} from 'recharts';
 
-const data = [
-  { name: 'Food', value: 400 },
-  { name: 'Transport', value: 300 },
-  { name: 'Shopping', value: 300 },
-  { name: 'Bills', value: 200 },
+// --- FAKE DATA ---
+const SUMMARY_DATA = {
+  totalGoals: 3,
+  goalsAchieved: 1,
+  totalSaved: 65000,
+  savedThisMonth: 8000
+};
+
+const SAVINGS_HISTORY = [
+  { month: 'Jan', amount: 5000 },
+  { month: 'Feb', amount: 12000 },
+  { month: 'Mar', amount: 18000 },
+  { month: 'Apr', amount: 25000 },
+  { month: 'May', amount: 30000 },
+  { month: 'Jun', amount: 35000 },
 ];
 
-const lineData = [
-  { name: 'Jan', savings: 4000 },
-  { name: 'Feb', savings: 3000 },
-  { name: 'Mar', savings: 5000 },
-  { name: 'Apr', savings: 4500 },
-  { name: 'May', savings: 6000 },
+const GOALS = [
+  {
+    id: 1,
+    name: "Laptop Fund",
+    target: 60000,
+    saved: 35000,
+    deadline: "2026-12-31",
+    milestones: [10000, 25000, 40000, 60000],
+    variant: 'cyan' as const
+  },
+  {
+    id: 2,
+    name: "Emergency Fund",
+    target: 20000,
+    saved: 20000,
+    deadline: "2025-06-01",
+    milestones: [5000, 10000, 15000, 20000],
+    variant: 'purple' as const
+  },
+  {
+    id: 3,
+    name: "Vacation Fund",
+    target: 40000,
+    saved: 10000,
+    deadline: "2026-08-01",
+    milestones: [10000, 20000, 30000, 40000],
+    variant: 'pink' as const
+  }
 ];
 
-const COLORS = ['#00F5FF', '#FF00FF', '#7C3AED', '#FFD700'];
+// --- LOGIC HELPERS ---
+const calculateHealth = (saved: number, target: number) => {
+  const progress = (saved / target) * 100;
+  if (progress >= 100) return { label: 'Achieved', color: 'text-green-400', icon: <CheckCircle2 size={14} /> };
+  if (progress > 50) return { label: 'On Track', color: 'text-primary', icon: <CheckCircle2 size={14} /> };
+  if (progress > 20) return { label: 'Slightly Behind', color: 'text-yellow-400', icon: <AlertCircle size={14} /> };
+  return { label: 'High Risk', color: 'text-red-400', icon: <AlertCircle size={14} /> };
+};
+
+const calculatePrediction = (saved: number, target: number) => {
+  const remaining = target - saved;
+  const avgMonthly = 5000; // Simulated average
+  const monthsLeft = Math.ceil(remaining / avgMonthly);
+  return monthsLeft > 0 ? monthsLeft : 0;
+};
 
 const Dashboard = () => {
-  const [goals, setGoals] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
-  const [aiInsights, setAiInsights] = useState<Record<string, any>>({});
-  
-  const [newGoal, setNewGoal] = useState({
-    goalName: '',
-    targetAmount: '',
-    currentSavings: '',
-    months: ''
-  });
-
-  useEffect(() => {
-    loadGoals();
-  }, []);
-
-  const loadGoals = async () => {
-    try {
-      const data = await goalService.fetchGoals();
-      setGoals(data);
-    } catch (error: any) {
-      showError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateGoal = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await goalService.createGoal({
-        goalName: newGoal.goalName,
-        targetAmount: Number(newGoal.targetAmount),
-        currentSavings: Number(newGoal.currentSavings),
-        months: Number(newGoal.months)
-      });
-      showSuccess('Goal initialized in the system.');
-      setIsDialogOpen(false);
-      setNewGoal({ goalName: '', targetAmount: '', currentSavings: '', months: '' });
-      loadGoals();
-    } catch (error: any) {
-      showError(error.message);
-    }
-  };
-
-  const handleDeleteGoal = async (id: string) => {
-    try {
-      await goalService.deleteGoal(id);
-      showSuccess('Goal purged from database.');
-      loadGoals();
-    } catch (error: any) {
-      showError(error.message);
-    }
-  };
-
-  const handleAnalyze = async (goal: any) => {
-    setAnalyzingId(goal.id);
-    try {
-      const insight = await goalService.analyzeGoal(goal);
-      setAiInsights(prev => ({ ...prev, [goal.id]: insight }));
-      showSuccess('AI Analysis complete.');
-    } catch (error: any) {
-      showError('AI System Offline: ' + error.message);
-    } finally {
-      setAnalyzingId(null);
-    }
-  };
-
-  const totalSavings = goals.reduce((acc, goal) => acc + (goal.current_savings || 0), 0);
-
   return (
     <div className="min-h-screen bg-background p-6 md:p-10 neon-grid">
-      <div className="max-w-7xl mx-auto relative z-10">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+      <div className="max-w-7xl mx-auto">
+        <header className="flex justify-between items-center mb-10">
           <div>
-            <h1 className="text-4xl font-black text-white tracking-tighter">
-              <span className="neon-text-cyan">FINANCIAL</span> COMMAND
-            </h1>
-            <p className="text-muted-foreground font-mono text-sm">SYSTEM STATUS: OPTIMAL // USER: AUTHENTICATED</p>
+            <h1 className="text-4xl font-black text-white tracking-tighter">COMMAND <span className="neon-text-cyan">CENTER</span></h1>
+            <p className="text-muted-foreground font-mono text-sm">SYSTEM STATUS: OPTIMAL // USER: COMMANDER</p>
           </div>
-          
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <NeonButton variant="cyan" size="lg" className="flex gap-2">
-                <Plus size={20} /> INITIALIZE NEW GOAL
-              </NeonButton>
-            </DialogTrigger>
-            <DialogContent className="glass-card border-primary/20 text-white max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-black neon-text-cyan">NEW OBJECTIVE</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreateGoal} className="space-y-4 mt-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Objective Name</label>
-                  <input 
-                    required
-                    value={newGoal.goalName}
-                    onChange={e => setNewGoal({...newGoal, goalName: e.target.value})}
-                    className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all"
-                    placeholder="e.g. CYBERTRUCK"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Target (₹)</label>
-                    <input 
-                      required
-                      type="number"
-                      value={newGoal.targetAmount}
-                      onChange={e => setNewGoal({...newGoal, targetAmount: e.target.value})}
-                      className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Initial (₹)</label>
-                    <input 
-                      required
-                      type="number"
-                      value={newGoal.currentSavings}
-                      onChange={e => setNewGoal({...newGoal, currentSavings: e.target.value})}
-                      className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Timeframe (Months)</label>
-                  <input 
-                    required
-                    type="number"
-                    value={newGoal.months}
-                    onChange={e => setNewGoal({...newGoal, months: e.target.value})}
-                    className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none"
-                  />
-                </div>
-                <NeonButton type="submit" className="w-full py-4 text-lg">CONFIRM MISSION</NeonButton>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <NeonButton variant="cyan" size="sm" className="flex gap-2">
+            <Plus size={18} /> NEW OBJECTIVE
+          </NeonButton>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <StatCard icon={<Wallet className="text-primary" />} label="TOTAL CAPITAL" value={`₹${totalSavings.toLocaleString()}`} variant="cyan" />
-          <StatCard icon={<TrendingDown className="text-secondary" />} label="BURN RATE" value="₹12,400" variant="pink" />
-          <StatCard icon={<Target className="text-accent" />} label="ACTIVE MISSIONS" value={goals.length.toString()} variant="purple" />
-          <StatCard icon={<Activity className="text-primary" />} label="EFFICIENCY" value="85%" variant="cyan" />
+        {/* 1. FINANCIAL SUMMARY */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <StatCard icon={<Target className="text-primary" />} label="Total Goals" value={SUMMARY_DATA.totalGoals} variant="cyan" />
+          <StatCard icon={<CheckCircle2 className="text-green-400" />} label="Goals Achieved" value={SUMMARY_DATA.goalsAchieved} variant="purple" />
+          <StatCard icon={<Wallet className="text-secondary" />} label="Total Saved" value={`₹${SUMMARY_DATA.totalSaved.toLocaleString()}`} variant="pink" />
+          <StatCard icon={<TrendingUp className="text-primary" />} label="Saved This Month" value={`₹${SUMMARY_DATA.savedThisMonth.toLocaleString()}`} variant="cyan" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-black text-white tracking-widest uppercase">Active Objectives</h2>
-              <div className="h-px flex-1 bg-white/10 mx-4" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          {/* 2, 3, 4, 6. GOAL PROGRESS SECTION */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="flex items-center gap-3 mb-2">
+              <Trophy className="text-primary" />
+              <h2 className="text-2xl font-black text-white">ACTIVE OBJECTIVES</h2>
             </div>
             
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <Loader2 className="animate-spin text-primary" size={48} />
-                <p className="text-primary font-mono animate-pulse">SCANNING DATABASE...</p>
+            {GOALS.map((goal) => (
+              <GoalDetailCard key={goal.id} goal={goal} />
+            ))}
+
+            {/* 5. SAVINGS GROWTH CHART */}
+            <div className="mt-12">
+              <div className="flex items-center gap-3 mb-6">
+                <TrendingUp className="text-secondary" />
+                <h2 className="text-2xl font-black text-white">SAVINGS GROWTH</h2>
               </div>
-            ) : goals.length > 0 ? (
-              <div className="space-y-6">
-                <AnimatePresence>
-                  {goals.map((goal, index) => (
-                    <GoalProgressCard 
-                      key={goal.id}
-                      goal={goal}
-                      variant={index % 3 === 0 ? 'cyan' : index % 3 === 1 ? 'pink' : 'purple'}
-                      onDelete={() => handleDeleteGoal(goal.id)}
-                      onAnalyze={() => handleAnalyze(goal)}
-                      isAnalyzing={analyzingId === goal.id}
-                      insight={aiInsights[goal.id]}
+              <NeonCard variant="pink" className="h-[400px] w-full p-8">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={SAVINGS_HISTORY}>
+                    <defs>
+                      <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FF00FF" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#FF00FF" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                    <XAxis dataKey="month" stroke="#666" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#666" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0D0D0D', border: '1px solid #FF00FF', borderRadius: '8px' }}
+                      itemStyle={{ color: '#FF00FF' }}
                     />
-                  ))}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <NeonCard className="text-center py-20 border-dashed border-white/10">
-                <Target className="mx-auto mb-4 text-muted-foreground opacity-20" size={64} />
-                <p className="text-muted-foreground font-mono">NO ACTIVE OBJECTIVES DETECTED.</p>
-                <p className="text-xs text-muted-foreground/50 mt-2">INITIALIZE A GOAL TO BEGIN TRACKING.</p>
+                    <Area type="monotone" dataKey="amount" stroke="#FF00FF" strokeWidth={3} fillOpacity={1} fill="url(#colorAmount)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </NeonCard>
-            )}
+            </div>
           </div>
 
+          {/* SIDEBAR INSIGHTS */}
           <div className="space-y-8">
-            <NeonCard className="relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-2 opacity-10"><Activity size={80} /></div>
-              <h3 className="text-xs font-black text-primary mb-6 tracking-widest uppercase">Resource Allocation</h3>
-              <div className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data}
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {data.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(0,245,255,0.3)', borderRadius: '8px' }}
-                      itemStyle={{ color: '#fff' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+            <NeonCard variant="cyan" className="p-6">
+              <h3 className="text-lg font-black mb-4 flex items-center gap-2">
+                <Clock className="text-primary" size={20} />
+                SYSTEM PREDICTIONS
+              </h3>
+              <div className="space-y-4">
+                {GOALS.filter(g => g.saved < g.target).map(goal => (
+                  <div key={goal.id} className="p-4 bg-white/5 rounded-lg border border-white/10">
+                    <p className="text-xs text-muted-foreground uppercase font-bold mb-1">{goal.name}</p>
+                    <p className="text-sm text-white">
+                      At current rate: <span className="text-primary font-bold">{calculatePrediction(goal.saved, goal.target)} months</span> to reach target.
+                    </p>
+                  </div>
+                ))}
               </div>
             </NeonCard>
 
-            <NeonCard variant="pink">
-              <h3 className="text-xs font-black text-secondary mb-6 tracking-widest uppercase">Growth Projection</h3>
-              <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={lineData}>
-                    <XAxis dataKey="name" stroke="#444" fontSize={10} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#444" fontSize={10} tickLine={false} axisLine={false} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,0,255,0.3)', borderRadius: '8px' }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="savings" 
-                      stroke="#FF00FF" 
-                      strokeWidth={3} 
-                      dot={{ fill: '#FF00FF', r: 4 }} 
-                      activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+            <NeonCard variant="purple" className="p-6">
+              <h3 className="text-lg font-black mb-4 flex items-center gap-2">
+                <Calendar className="text-accent" size={20} />
+                UPCOMING DEADLINES
+              </h3>
+              <div className="space-y-4">
+                {GOALS.map(goal => (
+                  <div key={goal.id} className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">{goal.name}</span>
+                    <span className="text-xs font-mono text-white bg-white/10 px-2 py-1 rounded">{goal.deadline}</span>
+                  </div>
+                ))}
               </div>
             </NeonCard>
           </div>
@@ -274,102 +192,83 @@ const Dashboard = () => {
 };
 
 const StatCard = ({ icon, label, value, variant }: any) => (
-  <NeonCard variant={variant} className="flex items-center gap-4 group">
-    <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">{icon}</div>
+  <NeonCard variant={variant} className="flex items-center gap-5 p-6">
+    <div className="p-4 rounded-xl bg-white/5 border border-white/10">{icon}</div>
     <div>
-      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{label}</p>
-      <p className="text-2xl font-black text-white tracking-tight">{value}</p>
+      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-3xl font-black text-white">{value}</p>
     </div>
   </NeonCard>
 );
 
-const GoalProgressCard = ({ goal, variant = 'cyan', onDelete, onAnalyze, isAnalyzing, insight }: any) => {
-  const progress = Math.round(((goal.current_savings || 0) / (goal.target || 1)) * 100);
-  const color = variant === 'cyan' ? '#00F5FF' : variant === 'pink' ? '#FF00FF' : '#7C3AED';
-  const monthlyRequired = Math.ceil(((goal.target || 0) - (goal.current_savings || 0)) / (goal.timeframe || 1));
+const GoalDetailCard = ({ goal }: { goal: any }) => {
+  const progress = Math.round((goal.saved / goal.target) * 100);
+  const remaining = goal.target - goal.saved;
+  const health = calculateHealth(goal.saved, goal.target);
+  const color = goal.variant === 'cyan' ? '#00F5FF' : goal.variant === 'pink' ? '#FF00FF' : '#7C3AED';
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-    >
-      <NeonCard variant={variant} className="relative group">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-xl font-black text-white tracking-tight uppercase">{goal.objective_name}</h3>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-muted-foreground">ID: {goal.id.slice(0,8)}</span>
+    <NeonCard variant={goal.variant} className="p-8">
+      <div className="flex flex-col md:flex-row justify-between gap-6 mb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <h3 className="text-2xl font-black text-white uppercase tracking-tight">{goal.name}</h3>
+            <div className={`flex items-center gap-1 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase ${health.color}`}>
+              {health.icon} {health.label}
             </div>
-            <p className="text-xs text-muted-foreground font-mono mt-1">TIMEFRAME: {goal.timeframe} MONTHS</p>
           </div>
-          <div className="flex gap-2">
-            <button 
-              onClick={onAnalyze}
-              disabled={isAnalyzing}
-              className="p-2 rounded-lg bg-white/5 hover:bg-primary/20 text-primary transition-all disabled:opacity-50"
-              title="AI Analysis"
-            >
-              {isAnalyzing ? <Loader2 className="animate-spin" size={18} /> : <BrainCircuit size={18} />}
-            </button>
-            <button 
-              onClick={onDelete}
-              className="p-2 rounded-lg bg-white/5 hover:bg-destructive/20 text-destructive transition-all"
-              title="Delete Goal"
-            >
-              <Trash2 size={18} />
-            </button>
-          </div>
+          <p className="text-muted-foreground font-mono text-sm">TARGET: ₹{goal.target.toLocaleString()} | REMAINING: ₹{remaining.toLocaleString()}</p>
         </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="space-y-1">
-            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Target</p>
-            <p className="text-sm font-black text-white">₹{(goal.target || 0).toLocaleString()}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Saved</p>
-            <p className="text-sm font-black text-white">₹{(goal.current_savings || 0).toLocaleString()}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Monthly Req.</p>
-            <p className="text-sm font-black text-primary">₹{monthlyRequired.toLocaleString()}</p>
-          </div>
-          <div className="space-y-1 text-right">
-            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Progress</p>
-            <p className="text-xl font-black" style={{ color }}>{progress}%</p>
-          </div>
+        
+        <div className="text-right">
+          <div className="text-4xl font-black" style={{ color }}>{progress}%</div>
+          <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Current Progress</p>
         </div>
+      </div>
 
-        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-2">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 1.5, ease: "circOut" }}
-            className="h-full rounded-full"
-            style={{ backgroundColor: color, boxShadow: `0 0 15px ${color}` }}
-          />
-        </div>
+      {/* Progress Bar */}
+      <div className="relative w-full h-4 bg-white/5 rounded-full overflow-hidden mb-8 border border-white/10">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="h-full rounded-full"
+          style={{ 
+            backgroundColor: color, 
+            boxShadow: `0 0 20px ${color}80` 
+          }}
+        />
+      </div>
 
-        {insight && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20 flex gap-3 items-start"
-          >
-            <Sparkles className="text-primary shrink-0 mt-1" size={16} />
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-black text-primary uppercase tracking-widest">AI Insight</span>
-                <span className="text-[10px] font-mono text-muted-foreground">FEASIBILITY: {insight.feasibility} // PROBABILITY: {insight.probability}%</span>
+      {/* Milestones */}
+      <div className="space-y-4">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Milestone Tracking</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {goal.milestones.map((m: number, idx: number) => {
+            const isAchieved = goal.saved >= m;
+            return (
+              <div key={idx} className={`flex items-center gap-2 p-3 rounded-lg border transition-all ${isAchieved ? 'bg-white/10 border-primary/50' : 'bg-black/20 border-white/5 opacity-40'}`}>
+                {isAchieved ? <CheckCircle2 size={16} className="text-primary" /> : <div className="w-4 h-4 rounded-full border-2 border-white/20" />}
+                <span className={`text-xs font-bold ${isAchieved ? 'text-white' : 'text-muted-foreground'}`}>₹{m.toLocaleString()}</span>
               </div>
-              <p className="text-xs text-white/80 leading-relaxed italic">"{insight.advice}"</p>
-            </div>
-          </motion.div>
-        )}
-      </NeonCard>
-    </motion.div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Prediction Widget */}
+      {progress < 100 && (
+        <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Clock size={18} /></div>
+            <p className="text-sm text-white">
+              At your current saving rate, you will reach your goal in <span className="font-black text-primary">{calculatePrediction(goal.saved, goal.target)} months</span>.
+            </p>
+          </div>
+          <NeonButton variant="cyan" size="sm" className="text-[10px] py-1 px-3">OPTIMIZE PLAN</NeonButton>
+        </div>
+      )}
+    </NeonCard>
   );
 };
 
