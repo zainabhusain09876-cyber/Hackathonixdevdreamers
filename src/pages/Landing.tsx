@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import NeonButton from '@/components/NeonButton';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
+import { MadeWithDyad } from "@/components/made-with-dyad";
 import { 
   Target, 
   Activity, 
@@ -12,6 +13,7 @@ import {
   Instagram, 
   Twitter, 
   Linkedin,
+  Github,
   LayoutDashboard,
   PieChart,
   Zap,
@@ -229,20 +231,57 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-white/5 bg-black/60">
+      <footer className="py-20 px-6 border-t border-white/5 bg-black/60">
         <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-12">
-            <img src="/src/assets/logo.png" alt="SmartSaver Logo" className="h-12 w-auto opacity-80" />
-            
-            <div className="flex gap-6">
-              <a href="#" className="p-2 rounded-full bg-white/5 hover:bg-primary/20 hover:text-primary transition-all"><Instagram size={20} /></a>
-              <a href="#" className="p-2 rounded-full bg-white/5 hover:bg-primary/20 hover:text-primary transition-all"><Twitter size={20} /></a>
-              <a href="#" className="p-2 rounded-full bg-white/5 hover:bg-primary/20 hover:text-primary transition-all"><Linkedin size={20} /></a>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+            <div className="space-y-6">
+              <img src="/src/assets/logo.png" alt="SmartSaver Logo" className="h-16 w-auto" />
+              <p className="text-muted-foreground leading-relaxed max-w-xs">
+                Empowering individuals to take control of their financial destiny through smart planning and tracking.
+              </p>
+              <div className="flex gap-4">
+                <a href="#" className="p-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary transition-all"><Twitter size={18} /></a>
+                <a href="#" className="p-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary transition-all"><Github size={18} /></a>
+                <a href="#" className="p-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary transition-all"><Linkedin size={18} /></a>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-white font-bold mb-6 tracking-widest uppercase text-sm">Product</h4>
+              <ul className="space-y-4 text-muted-foreground text-sm">
+                <li><button onClick={() => scrollToSection('features')} className="hover:text-primary transition-colors">Features</button></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Integrations</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Changelog</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-white font-bold mb-6 tracking-widest uppercase text-sm">Company</h4>
+              <ul className="space-y-4 text-muted-foreground text-sm">
+                <li><a href="#" className="hover:text-primary transition-colors">About Us</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-white font-bold mb-6 tracking-widest uppercase text-sm">Support</h4>
+              <ul className="space-y-4 text-muted-foreground text-sm">
+                <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
+                <li><button onClick={() => scrollToSection('contact')} className="hover:text-primary transition-colors">Contact Us</button></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Community</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Status</a></li>
+              </ul>
             </div>
           </div>
           
-          <div className="text-center text-sm text-muted-foreground font-mono">
-            <p>© 2026 SmartSaver. All Rights Reserved.</p>
+          <div className="pt-8 border-t border-white/5 text-center">
+            <p className="text-sm text-muted-foreground font-mono mb-4">
+              © 2026 SmartSaver Inc. All rights reserved.
+            </p>
+            <MadeWithDyad />
           </div>
         </div>
       </footer>
