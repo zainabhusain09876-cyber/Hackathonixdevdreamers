@@ -72,6 +72,7 @@ const Landing = () => {
           <div className="hidden md:flex items-center gap-8">
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-sm font-bold hover:text-primary transition-colors">HOME</button>
             <button onClick={() => scrollToSection('features')} className="text-sm font-bold hover:text-primary transition-colors">FEATURES</button>
+            <button onClick={() => navigate('/dashboard')} className="text-sm font-bold hover:text-primary transition-colors">GOAL TRACKING</button>
             <button onClick={() => navigate('/dashboard')} className="text-sm font-bold hover:text-primary transition-colors">DASHBOARD</button>
             <button onClick={() => scrollToSection('contact')} className="text-sm font-bold hover:text-primary transition-colors">CONTACT</button>
           </div>
@@ -140,24 +141,28 @@ const Landing = () => {
               title="Goal Tracking"
               description="Set specific financial targets and watch your progress grow in real-time."
               delay={0.1}
+              onClick={() => navigate('/dashboard')}
             />
             <FeatureCard 
               icon={<Activity className="text-secondary" size={32} />}
               title="Progress Monitoring"
               description="Visual indicators and milestones keep you motivated on your journey."
               delay={0.2}
+              onClick={() => navigate('/dashboard')}
             />
             <FeatureCard 
               icon={<PieChart className="text-accent" size={32} />}
               title="Financial Planning"
               description="Smart allocation tools help you distribute resources effectively."
               delay={0.3}
+              onClick={() => navigate('/dashboard')}
             />
             <FeatureCard 
               icon={<LayoutDashboard className="text-primary" size={32} />}
               title="Smart Dashboard"
               description="A centralized command center for all your financial data and insights."
               delay={0.4}
+              onClick={() => navigate('/dashboard')}
             />
           </div>
         </div>
@@ -245,14 +250,15 @@ const Landing = () => {
   );
 };
 
-const FeatureCard = ({ icon, title, description, delay }: { icon: React.ReactNode, title: string, description: string, delay: number }) => (
+const FeatureCard = ({ icon, title, description, delay, onClick }: { icon: React.ReactNode, title: string, description: string, delay: number, onClick?: () => void }) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ duration: 0.5, delay }}
     whileHover={{ y: -10 }}
-    className="glass-card p-8 rounded-2xl border-white/5 hover:border-primary/30 transition-all group"
+    onClick={onClick}
+    className={`glass-card p-8 rounded-2xl border-white/5 hover:border-primary/30 transition-all group ${onClick ? 'cursor-pointer' : ''}`}
   >
     <div className="mb-6 p-4 rounded-xl bg-white/5 w-fit group-hover:bg-white/10 transition-colors">{icon}</div>
     <h3 className="text-xl font-bold mb-3 text-white tracking-tight">{title}</h3>
