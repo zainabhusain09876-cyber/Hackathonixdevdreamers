@@ -75,7 +75,7 @@ const Landing = () => {
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-sm font-bold hover:text-primary transition-colors">HOME</button>
             <button onClick={() => scrollToSection('features')} className="text-sm font-bold hover:text-primary transition-colors">FEATURES</button>
             <button onClick={() => navigate('/dashboard')} className="text-sm font-bold hover:text-primary transition-colors">GOAL TRACKING</button>
-            <button onClick={() => navigate('/smart-dashboard')} className="text-sm font-bold hover:text-primary transition-colors">DASHBOARD</button>
+            <button onClick={() => navigate('/dashboard')} className="text-sm font-bold hover:text-primary transition-colors">DASHBOARD</button>
             <button onClick={() => scrollToSection('contact')} className="text-sm font-bold hover:text-primary transition-colors">CONTACT</button>
           </div>
 
@@ -150,21 +150,21 @@ const Landing = () => {
               title="Progress Monitoring"
               description="Visual indicators and milestones keep you motivated on your journey."
               delay={0.2}
-              onClick={() => navigate('/progress')}
+              onClick={() => navigate('/dashboard')}
             />
             <FeatureCard 
               icon={<PieChart className="text-accent" size={32} />}
               title="Financial Planning"
               description="Smart allocation tools help you distribute resources effectively."
               delay={0.3}
-              onClick={() => navigate('/planning')}
+              onClick={() => navigate('/dashboard')}
             />
             <FeatureCard 
               icon={<LayoutDashboard className="text-primary" size={32} />}
               title="Smart Dashboard"
               description="A centralized command center for all your financial data and insights."
               delay={0.4}
-              onClick={() => navigate('/smart-dashboard')}
+              onClick={() => navigate('/dashboard')}
             />
           </div>
         </div>
