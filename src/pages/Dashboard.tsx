@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NeonCard from '@/components/NeonCard';
-import { Wallet, TrendingDown, Target, Activity, Plus, Loader2, Trash2, BrainCircuit, Sparkles, Edit2 } from 'lucide-react';
+import { Wallet, TrendingDown, Target, Activity, Plus, Loader2, Trash2, BrainCircuit, Sparkles } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
 import NeonButton from '@/components/NeonButton';
 import { goalService } from '@/services/goalService';
-import { financeService, UserFinances } from '@/services/financeService';
 import { showSuccess, showError } from '@/utils/toast';
 import {
   Dialog,
@@ -34,10 +33,8 @@ const COLORS = ['#00F5FF', '#FF00FF', '#7C3AED', '#FFD700'];
 
 const Dashboard = () => {
   const [goals, setGoals] = useState<any[]>([]);
-  const [finances, setFinances] = useState<UserFinances>({ total_capital: 0, burn_rate: 0, efficiency: 85 });
   const [loading, setLoading] = useState(true);
-  const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
-  const [isFinanceDialogOpen, setIsFinanceDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [aiInsights, setAiInsights] = useState<Record<string, any>>({});
   
@@ -48,31 +45,14 @@ const Dashboard = () => {
     months: ''
   });
 
-  const [editFinances, setEditFinances] = useState({
-    total_capital: '',
-    burn_rate: '',
-    efficiency: ''
-  });
-
   useEffect(() => {
-    loadData();
+    loadGoals();
   }, []);
 
-  const loadData = async () => {
+  const loadGoals = async () => {
     try {
-      const [goalsData, financesData] = await Promise.all([
-        goalService.fetchGoals(),
-        financeService.getFinances()
-      ]);
-      setGoals(goalsData);
-      if (financesData) {
-        setFinances(financesData);
-        setEditFinances({
-          total_capital: financesData.total_capital.toString(),
-          burn_rate: financesData.burn_rate.toString(),
-          efficiency: financesData.efficiency.toString()
-        });
-      }
+      const data = await goalService.fetchGoals();
+      setGoals(data);
     } catch (error: any) {
       showError(error.message);
     } finally {
@@ -90,25 +70,9 @@ const Dashboard = () => {
         months: Number(newGoal.months)
       });
       showSuccess('Goal initialized in the system.');
-      setIsGoalDialogOpen(false);
+      setIsDialogOpen(false);
       setNewGoal({ goalName: '', targetAmount: '', currentSavings: '', months: '' });
-      loadData();
-    } catch (error: any) {
-      showError(error.message);
-    }
-  };
-
-  const handleUpdateFinances = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await financeService.updateFinances({
-        total_capital: Number(editFinances.total_capital),
-        burn_rate: Number(editFinances.burn_rate),
-        efficiency: Number(editFinances.efficiency)
-      });
-      showSuccess('Financial parameters updated.');
-      setIsFinanceDialogOpen(false);
-      loadData();
+      loadGoals();
     } catch (error: any) {
       showError(error.message);
     }
@@ -118,7 +82,7 @@ const Dashboard = () => {
     try {
       await goalService.deleteGoal(id);
       showSuccess('Goal purged from database.');
-      loadData();
+      loadGoals();
     } catch (error: any) {
       showError(error.message);
     }
@@ -137,6 +101,8 @@ const Dashboard = () => {
     }
   };
 
+  const totalSavings = goals.reduce((acc, goal) => acc + (goal.current_savings || 0), 0);
+
   return (
     <div className="min-h-screen bg-background p-6 md:p-10 neon-grid">
       <div className="max-w-7xl mx-auto relative z-10">
@@ -148,118 +114,70 @@ const Dashboard = () => {
             <p className="text-muted-foreground font-mono text-sm">SYSTEM STATUS: OPTIMAL // USER: AUTHENTICATED</p>
           </div>
           
-          <div className="flex gap-4">
-            <Dialog open={isFinanceDialogOpen} onOpenChange={setIsFinanceDialogOpen}>
-              <DialogTrigger asChild>
-                <NeonButton variant="purple" size="lg" className="flex gap-2">
-                  <Edit2 size={20} /> UPDATE BALANCE
-                </NeonButton>
-              </DialogTrigger>
-              <DialogContent className="glass-card border-accent/20 text-white max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-black neon-text-pink">UPDATE FINANCES</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleUpdateFinances} className="space-y-4 mt-4">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <NeonButton variant="cyan" size="lg" className="flex gap-2">
+                <Plus size={20} /> INITIALIZE NEW GOAL
+              </NeonButton>
+            </DialogTrigger>
+            <DialogContent className="glass-card border-primary/20 text-white max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black neon-text-cyan">NEW OBJECTIVE</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateGoal} className="space-y-4 mt-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Objective Name</label>
+                  <input 
+                    required
+                    value={newGoal.goalName}
+                    onChange={e => setNewGoal({...newGoal, goalName: e.target.value})}
+                    className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all"
+                    placeholder="e.g. CYBERTRUCK"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">Total Capital (₹)</label>
+                    <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Target (₹)</label>
                     <input 
                       required
                       type="number"
-                      value={editFinances.total_capital}
-                      onChange={e => setEditFinances({...editFinances, total_capital: e.target.value})}
-                      className="w-full bg-black/50 border border-secondary/30 rounded-lg px-4 py-3 focus:border-secondary outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">Burn Rate (₹/mo)</label>
-                    <input 
-                      required
-                      type="number"
-                      value={editFinances.burn_rate}
-                      onChange={e => setEditFinances({...editFinances, burn_rate: e.target.value})}
-                      className="w-full bg-black/50 border border-secondary/30 rounded-lg px-4 py-3 focus:border-secondary outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">Efficiency (%)</label>
-                    <input 
-                      required
-                      type="number"
-                      value={editFinances.efficiency}
-                      onChange={e => setEditFinances({...editFinances, efficiency: e.target.value})}
-                      className="w-full bg-black/50 border border-secondary/30 rounded-lg px-4 py-3 focus:border-secondary outline-none"
-                    />
-                  </div>
-                  <NeonButton type="submit" variant="pink" className="w-full py-4 text-lg">SYNC PARAMETERS</NeonButton>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
-              <DialogTrigger asChild>
-                <NeonButton variant="cyan" size="lg" className="flex gap-2">
-                  <Plus size={20} /> INITIALIZE NEW GOAL
-                </NeonButton>
-              </DialogTrigger>
-              <DialogContent className="glass-card border-primary/20 text-white max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-black neon-text-cyan">NEW OBJECTIVE</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleCreateGoal} className="space-y-4 mt-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Objective Name</label>
-                    <input 
-                      required
-                      value={newGoal.goalName}
-                      onChange={e => setNewGoal({...newGoal, goalName: e.target.value})}
-                      className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all"
-                      placeholder="e.g. CYBERTRUCK"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Target (₹)</label>
-                      <input 
-                        required
-                        type="number"
-                        value={newGoal.targetAmount}
-                        onChange={e => setNewGoal({...newGoal, targetAmount: e.target.value})}
-                        className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Initial (₹)</label>
-                      <input 
-                        required
-                        type="number"
-                        value={newGoal.currentSavings}
-                        onChange={e => setNewGoal({...newGoal, currentSavings: e.target.value})}
-                        className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Timeframe (Months)</label>
-                    <input 
-                      required
-                      type="number"
-                      value={newGoal.months}
-                      onChange={e => setNewGoal({...newGoal, months: e.target.value})}
+                      value={newGoal.targetAmount}
+                      onChange={e => setNewGoal({...newGoal, targetAmount: e.target.value})}
                       className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none"
                     />
                   </div>
-                  <NeonButton type="submit" className="w-full py-4 text-lg">CONFIRM MISSION</NeonButton>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Initial (₹)</label>
+                    <input 
+                      required
+                      type="number"
+                      value={newGoal.currentSavings}
+                      onChange={e => setNewGoal({...newGoal, currentSavings: e.target.value})}
+                      className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-primary uppercase tracking-widest">Timeframe (Months)</label>
+                  <input 
+                    required
+                    type="number"
+                    value={newGoal.months}
+                    onChange={e => setNewGoal({...newGoal, months: e.target.value})}
+                    className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-3 focus:border-primary outline-none"
+                  />
+                </div>
+                <NeonButton type="submit" className="w-full py-4 text-lg">CONFIRM MISSION</NeonButton>
+              </form>
+            </DialogContent>
+          </Dialog>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <StatCard icon={<Wallet className="text-primary" />} label="TOTAL CAPITAL" value={`₹${finances.total_capital.toLocaleString()}`} variant="cyan" />
-          <StatCard icon={<TrendingDown className="text-secondary" />} label="BURN RATE" value={`₹${finances.burn_rate.toLocaleString()}`} variant="pink" />
+          <StatCard icon={<Wallet className="text-primary" />} label="TOTAL CAPITAL" value={`₹${totalSavings.toLocaleString()}`} variant="cyan" />
+          <StatCard icon={<TrendingDown className="text-secondary" />} label="BURN RATE" value="₹12,400" variant="pink" />
           <StatCard icon={<Target className="text-accent" />} label="ACTIVE MISSIONS" value={goals.length.toString()} variant="purple" />
-          <StatCard icon={<Activity className="text-primary" />} label="EFFICIENCY" value={`${finances.efficiency}%`} variant="cyan" />
+          <StatCard icon={<Activity className="text-primary" />} label="EFFICIENCY" value="85%" variant="cyan" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
