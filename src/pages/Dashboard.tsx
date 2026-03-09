@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import NeonCard from '@/components/NeonCard';
-import { Wallet, TrendingDown, Target, Activity, Plus } from 'lucide-react';
+import { Wallet, TrendingDown, Target, Activity, Plus, Loader2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
 import NeonButton from '@/components/NeonButton';
+import { goalService } from '@/services/goalService';
+import { showSuccess, showError } from '@/utils/toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const data = [
   { name: 'Food', value: 400 },
@@ -23,6 +32,51 @@ const lineData = [
 const COLORS = ['#00F5FF', '#FF00FF', '#7C3AED', '#FFD700'];
 
 const Dashboard = () => {
+  const [goals, setGoals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newGoal, setNewGoal] = useState({
+    goalName: '',
+    targetAmount: '',
+    currentSavings: '',
+    months: ''
+  });
+
+  useEffect(() => {
+    loadGoals();
+  }, []);
+
+  const loadGoals = async () => {
+    try {
+      const data = await goalService.fetchGoals();
+      setGoals(data);
+    } catch (error: any) {
+      showError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await goalService.createGoal({
+        goalName: newGoal.goalName,
+        targetAmount: Number(newGoal.targetAmount),
+        currentSavings: Number(newGoal.currentSavings),
+        months: Number(newGoal.months)
+      });
+      showSuccess('Goal created successfully!');
+      setIsDialogOpen(false);
+      setNewGoal({ goalName: '', targetAmount: '', currentSavings: '', months: '' });
+      loadGoals();
+    } catch (error: any) {
+      showError(error.message);
+    }
+  };
+
+  const totalSavings = goals.reduce((acc, goal) => acc + goal.current_savings, 0);
+
   return (
     <div className="min-h-screen bg-background p-6 md:p-10">
       <div className="max-w-7xl mx-auto">
@@ -31,16 +85,71 @@ const Dashboard = () => {
             <h1 className="text-3xl font-black text-white">DASHBOARD</h1>
             <p className="text-muted-foreground">Welcome back, Commander.</p>
           </div>
-          <NeonButton variant="cyan" size="sm" className="flex gap-2">
-            <Plus size={18} /> NEW GOAL
-          </NeonButton>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <NeonButton variant="cyan" size="sm" className="flex gap-2">
+                <Plus size={18} /> NEW GOAL
+              </NeonButton>
+            </DialogTrigger>
+            <DialogContent className="glass-card border-primary/20 text-white">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black neon-text-cyan">CREATE NEW GOAL</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateGoal} className="space-y-4 mt-4">
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Goal Name</label>
+                  <input 
+                    required
+                    value={newGoal.goalName}
+                    onChange={e => setNewGoal({...newGoal, goalName: e.target.value})}
+                    className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-2 mt-1 focus:border-primary outline-none"
+                    placeholder="e.g. Buy Laptop"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Target (₹)</label>
+                    <input 
+                      required
+                      type="number"
+                      value={newGoal.targetAmount}
+                      onChange={e => setNewGoal({...newGoal, targetAmount: e.target.value})}
+                      className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-2 mt-1 focus:border-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Saved (₹)</label>
+                    <input 
+                      required
+                      type="number"
+                      value={newGoal.currentSavings}
+                      onChange={e => setNewGoal({...newGoal, currentSavings: e.target.value})}
+                      className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-2 mt-1 focus:border-primary outline-none"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Deadline (Months)</label>
+                  <input 
+                    required
+                    type="number"
+                    value={newGoal.months}
+                    onChange={e => setNewGoal({...newGoal, months: e.target.value})}
+                    className="w-full bg-black/50 border border-primary/30 rounded-lg px-4 py-2 mt-1 focus:border-primary outline-none"
+                  />
+                </div>
+                <NeonButton type="submit" className="w-full mt-4">INITIALIZE GOAL</NeonButton>
+              </form>
+            </DialogContent>
+          </Dialog>
         </header>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <StatCard icon={<Wallet className="text-primary" />} label="TOTAL SAVINGS" value="₹1,24,500" variant="cyan" />
+          <StatCard icon={<Wallet className="text-primary" />} label="TOTAL SAVINGS" value={`₹${totalSavings.toLocaleString()}`} variant="cyan" />
           <StatCard icon={<TrendingDown className="text-secondary" />} label="MONTHLY EXPENSES" value="₹12,400" variant="pink" />
-          <StatCard icon={<Target className="text-accent" />} label="ACTIVE GOALS" value="4" variant="purple" />
+          <StatCard icon={<Target className="text-accent" />} label="ACTIVE GOALS" value={goals.length.toString()} variant="purple" />
           <StatCard icon={<Activity className="text-primary" />} label="HEALTH SCORE" value="85%" variant="cyan" />
         </div>
 
@@ -48,14 +157,31 @@ const Dashboard = () => {
           {/* Goals Section */}
           <div className="lg:col-span-2 space-y-6">
             <h2 className="text-xl font-bold text-white mb-4">ACTIVE GOALS</h2>
-            <GoalProgressCard title="Buy Laptop" saved={35000} target={80000} deadline="6 Months" />
-            <GoalProgressCard title="Travel Fund" saved={15000} target={50000} deadline="3 Months" variant="pink" />
-            <GoalProgressCard title="Emergency Fund" saved={20000} target={100000} deadline="12 Months" variant="purple" />
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="animate-spin text-primary" size={40} />
+              </div>
+            ) : goals.length > 0 ? (
+              goals.map((goal, index) => (
+                <GoalProgressCard 
+                  key={goal.id}
+                  title={goal.goal_name}
+                  saved={goal.current_savings}
+                  target={goal.target_amount}
+                  deadline={`${goal.deadline_months} Months`}
+                  variant={index % 3 === 0 ? 'cyan' : index % 3 === 1 ? 'pink' : 'purple'}
+                />
+              ))
+            ) : (
+              <NeonCard className="text-center py-10">
+                <p className="text-muted-foreground">No active goals found. Start by creating one!</p>
+              </NeonCard>
+            )}
           </div>
 
           {/* Charts Section */}
           <div className="space-y-8">
-            <NeonCard title="EXPENSE CATEGORIES">
+            <NeonCard>
               <h3 className="text-sm font-bold text-muted-foreground mb-4">EXPENSE CATEGORIES</h3>
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
