@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import NeonButton from '@/components/NeonButton';
+import { supabase } from '@/integrations/supabase/client';
+import { showSuccess, showError } from '@/utils/toast';
 import { 
   Target, 
   Activity, 
-  ShieldCheck, 
   Mail, 
   Phone, 
   Instagram, 
@@ -13,16 +14,49 @@ import {
   Linkedin,
   LayoutDashboard,
   PieChart,
-  Zap
+  Zap,
+  Loader2
 } from 'lucide-react';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert([
+          { 
+            name: contactForm.name, 
+            email: contactForm.email, 
+            message: contactForm.message 
+          }
+        ]);
+
+      if (error) throw error;
+
+      showSuccess('Transmission received. We will contact you shortly.');
+      setContactForm({ name: '', email: '', message: '' });
+    } catch (error: any) {
+      showError('System Error: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -32,7 +66,7 @@ const Landing = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-white/5 px-6 py-4">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <img src="/src/assets/logo.png" alt="SmartSaver Logo" className="h-10 w-auto" />
+            <img src="/src/assets/logo.png" alt="SmartSaver Logo" className="h-16 w-auto" />
           </div>
           
           <div className="hidden md:flex items-center gap-8">
@@ -51,7 +85,7 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden neon-grid">
+      <section className="relative pt-40 pb-20 px-6 overflow-hidden neon-grid">
         <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -151,12 +185,39 @@ const Landing = () => {
                 </div>
               </div>
               
-              <div className="space-y-4">
-                <input type="text" placeholder="NAME" className="w-full bg-black/50 border border-white/10 rounded-xl px-6 py-4 focus:border-primary outline-none transition-all" />
-                <input type="email" placeholder="EMAIL" className="w-full bg-black/50 border border-white/10 rounded-xl px-6 py-4 focus:border-primary outline-none transition-all" />
-                <textarea placeholder="MESSAGE" rows={4} className="w-full bg-black/50 border border-white/10 rounded-xl px-6 py-4 focus:border-primary outline-none transition-all resize-none"></textarea>
-                <NeonButton className="w-full py-4">SEND TRANSMISSION</NeonButton>
-              </div>
+              <form onSubmit={handleContactSubmit} className="space-y-4">
+                <input 
+                  type="text" 
+                  placeholder="NAME" 
+                  required
+                  value={contactForm.name}
+                  onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-6 py-4 focus:border-primary outline-none transition-all" 
+                />
+                <input 
+                  type="email" 
+                  placeholder="EMAIL" 
+                  required
+                  value={contactForm.email}
+                  onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-6 py-4 focus:border-primary outline-none transition-all" 
+                />
+                <textarea 
+                  placeholder="MESSAGE" 
+                  required
+                  rows={4} 
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-6 py-4 focus:border-primary outline-none transition-all resize-none"
+                ></textarea>
+                <NeonButton 
+                  type="submit" 
+                  className="w-full py-4"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? <Loader2 className="animate-spin" /> : 'SEND TRANSMISSION'}
+                </NeonButton>
+              </form>
             </div>
           </div>
         </div>
@@ -166,7 +227,7 @@ const Landing = () => {
       <footer className="py-12 px-6 border-t border-white/5 bg-black/60">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-12">
-            <img src="/src/assets/logo.png" alt="SmartSaver Logo" className="h-8 w-auto opacity-80" />
+            <img src="/src/assets/logo.png" alt="SmartSaver Logo" className="h-12 w-auto opacity-80" />
             
             <div className="flex gap-6">
               <a href="#" className="p-2 rounded-full bg-white/5 hover:bg-primary/20 hover:text-primary transition-all"><Instagram size={20} /></a>
