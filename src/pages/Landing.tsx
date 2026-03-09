@@ -15,9 +15,10 @@ import {
   Linkedin,
   Github,
   LayoutDashboard,
-  PieChart,
   Zap,
-  Loader2
+  Loader2,
+  ChevronRight,
+  MapPin
 } from 'lucide-react';
 
 const Landing = () => {
@@ -74,8 +75,8 @@ const Landing = () => {
           <div className="hidden md:flex items-center gap-8">
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-sm font-bold hover:text-primary transition-colors">HOME</button>
             <button onClick={() => scrollToSection('features')} className="text-sm font-bold hover:text-primary transition-colors">FEATURES</button>
-            <button onClick={() => navigate('/dashboard')} className="text-sm font-bold hover:text-primary transition-colors">GOAL TRACKING</button>
-            <button onClick={() => navigate('/dashboard')} className="text-sm font-bold hover:text-primary transition-colors">DASHBOARD</button>
+            <button onClick={() => navigate('/progress')} className="text-sm font-bold hover:text-primary transition-colors">PROGRESS MONITORING</button>
+            <button onClick={() => navigate('/dashboard')} className="text-sm font-bold hover:text-primary transition-colors">SMART DASHBOARD</button>
             <button onClick={() => scrollToSection('contact')} className="text-sm font-bold hover:text-primary transition-colors">CONTACT</button>
           </div>
 
@@ -137,7 +138,7 @@ const Landing = () => {
             <div className="h-1 w-20 bg-primary mx-auto rounded-full" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard 
               icon={<Target className="text-primary" size={32} />}
               title="Goal Tracking"
@@ -148,22 +149,15 @@ const Landing = () => {
             <FeatureCard 
               icon={<Activity className="text-secondary" size={32} />}
               title="Progress Monitoring"
-              description="Visual indicators and milestones keep you motivated on your journey."
+              description="Visual indicators, risk analysis, and milestone tracking to keep you on course."
               delay={0.2}
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/progress')}
             />
             <FeatureCard 
-              icon={<PieChart className="text-accent" size={32} />}
-              title="Financial Planning"
-              description="Smart allocation tools help you distribute resources effectively."
-              delay={0.3}
-              onClick={() => navigate('/dashboard')}
-            />
-            <FeatureCard 
-              icon={<LayoutDashboard className="text-primary" size={32} />}
+              icon={<LayoutDashboard className="text-accent" size={32} />}
               title="Smart Dashboard"
-              description="A centralized command center for all your financial data and insights."
-              delay={0.4}
+              description="Advanced analytics, trend analysis, and AI-powered predictions for your wealth."
+              delay={0.3}
               onClick={() => navigate('/dashboard')}
             />
           </div>
@@ -230,57 +224,83 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-20 px-6 border-t border-white/5 bg-black/60">
-        <div className="container mx-auto">
+      {/* Redesigned Footer */}
+      <footer className="relative pt-20 pb-10 px-6 border-t border-white/5 bg-black/80 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+        
+        <div className="container mx-auto relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+            {/* Brand Column */}
             <div className="space-y-6">
-              <img src="/src/assets/logo.png" alt="SmartSaver Logo" className="h-16 w-auto" />
-              <p className="text-muted-foreground leading-relaxed max-w-xs">
-                Empowering individuals to take control of their financial destiny through smart planning and tracking.
+              <img src="/src/assets/logo.png" alt="SmartSaver Logo" className="h-20 w-auto" />
+              <p className="text-muted-foreground leading-relaxed">
+                The next generation of financial intelligence. Track, analyze, and achieve your goals with AI-powered precision.
               </p>
               <div className="flex gap-4">
-                <a href="#" className="p-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary transition-all"><Twitter size={18} /></a>
-                <a href="#" className="p-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary transition-all"><Github size={18} /></a>
-                <a href="#" className="p-2 rounded-lg bg-white/5 hover:bg-primary/20 hover:text-primary transition-all"><Linkedin size={18} /></a>
+                <SocialIcon icon={<Twitter size={18} />} href="#" />
+                <SocialIcon icon={<Github size={18} />} href="#" />
+                <SocialIcon icon={<Linkedin size={18} />} href="#" />
+                <SocialIcon icon={<Instagram size={18} />} href="#" />
               </div>
             </div>
 
+            {/* Quick Links */}
             <div>
-              <h4 className="text-white font-bold mb-6 tracking-widest uppercase text-sm">Product</h4>
-              <ul className="space-y-4 text-muted-foreground text-sm">
-                <li><button onClick={() => scrollToSection('features')} className="hover:text-primary transition-colors">Features</button></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Changelog</a></li>
+              <h4 className="text-white font-black mb-8 tracking-widest uppercase text-sm flex items-center gap-2">
+                <span className="w-2 h-2 bg-primary rounded-full" /> QUICK LINKS
+              </h4>
+              <ul className="space-y-4">
+                <FooterLink label="Home" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+                <FooterLink label="Features" onClick={() => scrollToSection('features')} />
+                <FooterLink label="Goal Tracking" onClick={() => navigate('/dashboard')} />
+                <FooterLink label="Smart Dashboard" onClick={() => navigate('/dashboard')} />
               </ul>
             </div>
 
+            {/* Services */}
             <div>
-              <h4 className="text-white font-bold mb-6 tracking-widest uppercase text-sm">Company</h4>
-              <ul className="space-y-4 text-muted-foreground text-sm">
-                <li><a href="#" className="hover:text-primary transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
+              <h4 className="text-white font-black mb-8 tracking-widest uppercase text-sm flex items-center gap-2">
+                <span className="w-2 h-2 bg-secondary rounded-full" /> SERVICES
+              </h4>
+              <ul className="space-y-4">
+                <FooterLink label="Progress Monitoring" onClick={() => navigate('/progress')} />
+                <FooterLink label="AI Analysis" onClick={() => navigate('/dashboard')} />
+                <FooterLink label="Trend Prediction" onClick={() => navigate('/dashboard')} />
+                <FooterLink label="Milestone Tracking" onClick={() => navigate('/progress')} />
               </ul>
             </div>
 
+            {/* Contact Us */}
             <div>
-              <h4 className="text-white font-bold mb-6 tracking-widest uppercase text-sm">Support</h4>
-              <ul className="space-y-4 text-muted-foreground text-sm">
-                <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
-                <li><button onClick={() => scrollToSection('contact')} className="hover:text-primary transition-colors">Contact Us</button></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Community</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Status</a></li>
+              <h4 className="text-white font-black mb-8 tracking-widest uppercase text-sm flex items-center gap-2">
+                <span className="w-2 h-2 bg-accent rounded-full" /> CONTACT US
+              </h4>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3 text-muted-foreground text-sm">
+                  <MapPin size={18} className="text-primary shrink-0" />
+                  <span>Cyber City, Sector 24, <br />Neo Delhi, 110001</span>
+                </li>
+                <li className="flex items-center gap-3 text-muted-foreground text-sm">
+                  <Phone size={18} className="text-secondary shrink-0" />
+                  <span>+91 98765 43210</span>
+                </li>
+                <li className="flex items-center gap-3 text-muted-foreground text-sm">
+                  <Mail size={18} className="text-accent shrink-0" />
+                  <span>hello@smartsaver.ai</span>
+                </li>
               </ul>
             </div>
           </div>
           
-          <div className="pt-8 border-t border-white/5 text-center">
-            <p className="text-sm text-muted-foreground font-mono mb-4">
-              © 2026 SmartSaver Inc. All rights reserved.
+          <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-xs text-muted-foreground font-mono">
+              © 2026 SMARTSAVER INC. ALL SYSTEMS OPERATIONAL.
             </p>
+            <div className="flex gap-6 text-[10px] font-bold text-muted-foreground tracking-widest">
+              <a href="#" className="hover:text-primary transition-colors">PRIVACY POLICY</a>
+              <a href="#" className="hover:text-primary transition-colors">TERMS OF SERVICE</a>
+              <a href="#" className="hover:text-primary transition-colors">COOKIE SETTINGS</a>
+            </div>
             <MadeWithDyad />
           </div>
         </div>
@@ -303,6 +323,27 @@ const FeatureCard = ({ icon, title, description, delay, onClick }: { icon: React
     <h3 className="text-xl font-bold mb-3 text-white tracking-tight">{title}</h3>
     <p className="text-muted-foreground leading-relaxed">{description}</p>
   </motion.div>
+);
+
+const FooterLink = ({ label, onClick }: { label: string, onClick: () => void }) => (
+  <li>
+    <button 
+      onClick={onClick}
+      className="text-muted-foreground hover:text-primary text-sm transition-all flex items-center gap-2 group"
+    >
+      <ChevronRight size={12} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+      {label}
+    </button>
+  </li>
+);
+
+const SocialIcon = ({ icon, href }: { icon: React.ReactNode, href: string }) => (
+  <a 
+    href={href} 
+    className="p-2.5 rounded-lg bg-white/5 border border-white/5 hover:border-primary/30 hover:bg-primary/10 hover:text-primary transition-all"
+  >
+    {icon}
+  </a>
 );
 
 export default Landing;
